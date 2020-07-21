@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"F-Scrack-Go/serverScan/icmpcheck"
+)
 
 func main() {
-	fmt.Println("asd")
+	icmpcheck.ICMPRun([]string{"127.0.0.1", "192.168.2.1"})
 }
