@@ -2,8 +2,17 @@ package main
 
 import (
 	"F-Scrack-Go/serverScan/icmpcheck"
+	"fmt"
 )
 
+var hostList []string
+var DEBUG bool = true
+
 func main() {
-	icmpcheck.ICMPRun([]string{"127.0.0.1", "192.168.2.1"})
+	if hostinfile != "" && !DEBUG {
+		hostList = StandardHostsViaFile(hostinfile)
+	} else if DEBUG {
+		hostList = StandardHostsViaFile("test.txt")
+	}
+	fmt.Println(icmpcheck.ICMPRun(hostList))
 }

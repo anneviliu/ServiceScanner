@@ -1,5 +1,0 @@
-package module
-
-func start() {
-
-}
