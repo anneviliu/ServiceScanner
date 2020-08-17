@@ -101,7 +101,7 @@ func IcmpCheck(hostslist []string) {
 }
 
 func ExecCommandPing(ip string, bsenv string) bool {
-	command := exec.Command("bash", "-c", "ping -c 1 -i 0.5 -t 4 -W 2 -w 5 "+ip+" >/dev/null && echo true || echo false")
+	command := exec.Command("bash", "-c", "ping -c 1 -i 0.5 -t 4 -W 2 "+ip+" >/dev/null && echo true || echo false")
 	outinfo := bytes.Buffer{}
 	command.Stdout = &outinfo
 	err := command.Start()
@@ -163,8 +163,8 @@ func ICMPRun(hostslist []string) []string {
 		if sysinfo.Groupid == "0" || sysinfo.Userid == "0" || sysinfo.Username == "root" {
 			IcmpCheck(hostslist)
 		} else {
-			fmt.Println("请在root下运行")
-			//PingCMDcheck(hostslist, "/usr/local/bin/bash")
+			//fmt.Println("请在root下运行")
+			PingCMDcheck(hostslist, "/bin/bash")
 		}
 	}
 	return AliveHosts

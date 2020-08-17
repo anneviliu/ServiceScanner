@@ -5,7 +5,7 @@ import (
 	"F-Scrack-Go/serverScan/portscan"
 	"fmt"
 	"github.com/fatih/color"
-	"log"
+	"os"
 )
 
 var hostList []string
@@ -16,7 +16,8 @@ var isIP bool
 func main() {
 	// 避免同时使用 -hf 和 -h
 	if hostinfile != "" && hosts != "" {
-		log.Fatal("Can not use -hf and -h at the same time.")
+		color.Red("Can not use -hf and -h at the same time.")
+		os.Exit(1)
 	}
 
 	// -hf
@@ -24,7 +25,9 @@ func main() {
 		//hostList = StandardIPViaFile(hostinfile, "file")
 		hostList = StandardIPViaFile("test.txt", "file")
 		aliveList = icmpcheck.ICMPRun(hostList)
-		//fmt.Println(aliveList)
+		for _, host := range aliveList {
+			fmt.Printf("(ICMP) Target '%s' is alive\n", host)
+		}
 	}
 
 	// -h
@@ -39,15 +42,10 @@ func main() {
 				fmt.Printf("(ICMP) Target '%s' is alive\n", host)
 			}
 			portscan.TCPportScan(aliveList, ports, "tcp", timeout)
-			//icmp
-			//_, aliveAddress := portscan.TCPportScan(aliveList, ports, model, timeout)
-			//fmt.Println(aliveAddress)
 
 		} else if model == "tcp" {
 			a, _ := portscan.TCPportScan(aliveList, "80", "tcp", 2)
 			fmt.Println(a)
 		}
 	}
-
-	//fmt.Println(icmpcheck.ICMPRun(hostList))
 }
