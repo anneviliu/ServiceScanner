@@ -21,20 +21,23 @@ func main() {
 	}
 
 	// -hf
+	c := color.New(color.FgGreen).Add(color.Bold)
+
 	if hostinfile != "" {
 		//hostList = StandardIPViaFile(hostinfile, "file")
 		hostList = StandardIPViaFile("test.txt", "file")
 		aliveList = icmpcheck.ICMPRun(hostList)
 		for _, host := range aliveList {
-			fmt.Printf("(ICMP) Target '%s' is alive\n", host)
+			c.Printf("[ICMP] Target '%s' is alive\n", host)
 		}
+		portscan.TCPportScan(aliveList, ports, "tcp", timeout)
+
 	}
 
 	// -h
 	if hosts != "" {
 		// 标准化ip
 		hostList = StandardIPViaFile(hosts, "single")
-		//hostList = StandardIPViaFile("192.168.1.1", "single")
 		if model == "" {
 			// icmp 存活探测
 			aliveList = icmpcheck.ICMPRun(hostList)
@@ -47,5 +50,10 @@ func main() {
 			a, _ := portscan.TCPportScan(aliveList, "80", "tcp", 2)
 			fmt.Println(a)
 		}
+	}
+
+	// -o result output
+	if outFile != "" {
+
 	}
 }
