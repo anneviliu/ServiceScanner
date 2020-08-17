@@ -6,6 +6,7 @@ import (
 	"github.com/malfunkt/iprange"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -104,4 +105,37 @@ func StandardIPViaFile(host string, t string) []string {
 	}
 	return standardHostList
 	//fmt.Println(standardHostList)
+}
+
+/*
+-1 文件路径不正确
+-2 文件已存在
+-3 文件创建失败
+-4 未知错误
+1 正常
+
+
+
+*/
+func PathCheck(files string) int {
+	path, _ := filepath.Split(files)
+	_, err := os.Stat(path)
+	if err == nil {
+		_, err2 := os.Stat(files)
+		if err2 == nil {
+			return -1
+		}
+		if os.IsNotExist(err2) {
+			return 1
+		} else {
+			return -2
+		}
+	} else {
+		err3 := os.MkdirAll(path, os.ModePerm)
+		if err3 == nil {
+			return 1
+		} else {
+			return -3
+		}
+	}
 }
