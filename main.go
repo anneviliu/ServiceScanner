@@ -27,6 +27,11 @@ func main() {
 		flag.Usage()
 	}
 
+	if printVersion {
+		fmt.Printf("Port and Service Scanner.\nVersion:%s\nBy:Annevi\n", version)
+		os.Exit(0)
+	}
+
 	// 避免同时使用 -hf 和 -h
 	if hostinfile != "" && hosts != "" {
 		color.Red("Can not use -hf and -h at the same time.")
@@ -45,10 +50,15 @@ func main() {
 		blue.Println("\nProcess: \n")
 		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
 		fmt.Println("\n")
+
 		//fmt.Println(aliveAddr)
 		if service != "" {
 			if len(aliveAddr) > 0 {
 				TargetBanners = vscan.GetProbes(aliveAddr)
+			}
+		} else {
+			for _, host := range aliveAddr {
+				green.Printf("[+] [TCP] %s is open.\n", host)
 			}
 		}
 	}
@@ -69,6 +79,10 @@ func main() {
 		if service != "" {
 			if len(aliveAddr) > 0 {
 				TargetBanners = vscan.GetProbes(aliveAddr)
+			}
+		} else {
+			for _, host := range aliveAddr {
+				green.Printf("[+] [TCP] %s is open.\n", host)
 			}
 		}
 	}
