@@ -1,13 +1,14 @@
 package vscan
 
 import (
-	"./proberbyte"
+	"F-Scrack-Go/serverScan/vscan/proberbyte"
 	"bytes"
 	"compress/gzip"
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
 	"github.com/axgle/mahonia"
+	"github.com/fatih/color"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -18,6 +19,8 @@ import (
 	"sync"
 	"time"
 )
+
+var green = color.New(color.FgGreen)
 
 type VScan struct {
 	Exclude string
@@ -65,8 +68,8 @@ func (p *Probe) getDirectiveSyntax(data string) (directive Directive) {
 
 	blankIndex := strings.Index(data, " ")
 	directiveName := data[:blankIndex]
-	Flag := data[blankIndex+1: blankIndex+2]
-	delimiter := data[blankIndex+2: blankIndex+3]
+	Flag := data[blankIndex+1 : blankIndex+2]
+	delimiter := data[blankIndex+2 : blankIndex+3]
 	directiveStr := data[blankIndex+3:]
 
 	directive.DirectiveName = directiveName
@@ -376,12 +379,12 @@ type Result struct {
 	Target
 	Service
 
-	Error     string
+	Error string
 }
 
 type Service struct {
-	Name        string
-	Banner      string
+	Name   string
+	Banner string
 
 	Extras
 }
@@ -425,8 +428,8 @@ func (p *Probe) ContainsPort(testPort int) bool {
 
 func (v *VScan) Explore(addr string) (Result, error) {
 	var target Target
-	target.IP = strings.Split(addr,":")[0]
-	portstr, err := strconv.Atoi(strings.Split(addr,":")[1])
+	target.IP = strings.Split(addr, ":")[0]
+	portstr, err := strconv.Atoi(strings.Split(addr, ":")[1])
 	if err == nil {
 		target.Port = portstr
 	}
@@ -607,19 +610,19 @@ func (t *Target) GetAddress() string {
 
 func trimBanner(buf []byte) string {
 	bufStr := string(buf)
-	if strings.Contains(bufStr, "SMB"){
+	if strings.Contains(bufStr, "SMB") {
 		banner := hex.EncodeToString(buf)
-		if (banner[0xa:0xa+6] == "534d42") {
+		if banner[0xa:0xa+6] == "534d42" {
 			plain := banner[0xa2:]
-			data,_ := hex.DecodeString(plain)
+			data, _ := hex.DecodeString(plain)
 			var domain = ""
 			var index = 0
-			for _,s:=range data{
+			for _, s := range data {
 				index += 1
-				if s != 0{
+				if s != 0 {
 					domain = domain + string(s)
-				}else {
-					if data[index] == 0 && data[index+1] == 0{
+				} else {
+					if data[index] == 0 && data[index+1] == 0 {
 						index += 1
 						break
 					}
@@ -627,12 +630,12 @@ func trimBanner(buf []byte) string {
 			}
 			var hostname = ""
 			var index2 = 0
-			for _,h:=range data[index:]{
+			for _, h := range data[index:] {
 				index2 += 1
-				if h !=0{
+				if h != 0 {
 					hostname = hostname + string(h)
 				}
-				if data[index:][index2] == 0 && data[index:][index2+1] == 0{
+				if data[index:][index2] == 0 && data[index:][index2+1] == 0 {
 					break
 				}
 			}
@@ -642,11 +645,11 @@ func trimBanner(buf []byte) string {
 	}
 
 	var src string
-	for _,ch:=range bufStr{
-		if (32 < int(ch)) && (int(ch)< 125) {
+	for _, ch := range bufStr {
+		if (32 < int(ch)) && (int(ch) < 125) {
 			src = src + string(ch)
-		}else {
-			src = src +" "
+		} else {
+			src = src + " "
 		}
 	}
 
@@ -678,49 +681,49 @@ func ConvertToString(src string, srcCode string, tagCode string) string {
 	return result
 }
 
-type HttpInfo struct{
-	ServiceURL string
-	StatusCode int
+type HttpInfo struct {
+	ServiceURL   string
+	StatusCode   int
 	ServerBanner string
-	ServerSign string
+	ServerSign   string
 }
 
-func getHttpBanner(url string) (statsu bool,res HttpInfo) {
+func getHttpBanner(url string) (statsu bool, res HttpInfo) {
 	var tag HttpInfo
-	transport := &http.Transport {
+	transport := &http.Transport{
 		DialContext: (&net.Dialer{
 			Timeout: time.Duration(2) * time.Second,
 		}).DialContext,
-		TLSClientConfig: &tls.Config {
+		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
 	}
 
 	client := &http.Client{
 		Transport: transport,
-		Timeout: 3* time.Second,
+		Timeout:   3 * time.Second,
 	}
 	resp, err := client.Get(url)
 	if err != nil {
-		return false,tag
+		return false, tag
 	}
 	defer resp.Body.Close()
 
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return false,tag
+		return false, tag
 	}
 
 	tag.ServerSign = resp.Header.Get("Server")
 	tag.StatusCode = resp.StatusCode
 	tag.ServiceURL = url
 
-	if(strings.Contains(string(resp.Header.Get("Content-Type")), "2312")){
+	if strings.Contains(string(resp.Header.Get("Content-Type")), "2312") {
 		tag.ServerBanner = trimHtml(ConvertToString(string(content), "gbk", "utf-8"))
 	} else {
 		tag.ServerBanner = trimHtml(string(content))
 	}
-	return true,tag
+	return true, tag
 }
 
 func (v *VScan) scanWithProbes(target Target, probes *[]Probe) (Result, error) {
@@ -746,44 +749,44 @@ func (v *VScan) scanWithProbes(target Target, probes *[]Probe) (Result, error) {
 				if matched && !match.IsSoft {
 					extras := match.ParseVersionInfo(response)
 					result.Service.Name = match.Service
-					if(match.Service == "http") {
-						if(target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 7443 || target.Port == 8443  || target.Port == 9443 || target.Port == 4430){
+					if match.Service == "http" {
+						if target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 7443 || target.Port == 8443 || target.Port == 9443 || target.Port == 4430 {
 							url := "https://" + target.GetAddress()
-							status,tag := getHttpBanner(url)
-							if status{
+							status, tag := getHttpBanner(url)
+							if status {
 								result.Banner = tag.ServerBanner
 								result.Service.Extras = extras
 								result.Service.Extras.Sign = tag.ServerSign
 								result.Service.Extras.StatusCode = tag.StatusCode
-								result.Service.Extras.ServiceURL =tag.ServiceURL
-							}else {
+								result.Service.Extras.ServiceURL = tag.ServiceURL
+							} else {
 								result.Service.Extras = extras
 								result.Service.Extras.ServiceURL = url
 							}
-						}else{
+						} else {
 							url := "http://" + target.GetAddress()
-							status,tag := getHttpBanner(url)
-							if status{
+							status, tag := getHttpBanner(url)
+							if status {
 								result.Banner = tag.ServerBanner
 								result.Service.Extras = extras
 								result.Service.Extras.Sign = tag.ServerSign
 								result.Service.Extras.StatusCode = tag.StatusCode
-								result.Service.Extras.ServiceURL =tag.ServiceURL
-							}else {
+								result.Service.Extras.ServiceURL = tag.ServiceURL
+							} else {
 								result.Service.Extras = extras
 								result.Service.Extras.ServiceURL = url
 							}
 						}
-					} else if((match.Service == "ssl" || match.Service == "ssl/http"|| match.Service == "ssl-ms-rdp") && (target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 4430 || ( target.Port >= 80 && target.Port <= 99 ) || ( target.Port >= 7000 && target.Port <= 9999 ))){
+					} else if (match.Service == "ssl" || match.Service == "ssl/http" || match.Service == "ssl-ms-rdp") && (target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 4430 || (target.Port >= 80 && target.Port <= 99) || (target.Port >= 7000 && target.Port <= 9999)) {
 						url := "https://" + target.GetAddress()
-						status,tag := getHttpBanner(url)
-						if status{
+						status, tag := getHttpBanner(url)
+						if status {
 							result.Banner = tag.ServerBanner
 							result.Service.Extras = extras
 							result.Service.Extras.Sign = tag.ServerSign
 							result.Service.Extras.StatusCode = tag.StatusCode
-							result.Service.Extras.ServiceURL =tag.ServiceURL
-						}else {
+							result.Service.Extras.ServiceURL = tag.ServiceURL
+						} else {
 							result.Service.Extras = extras
 							result.Service.Extras.ServiceURL = url
 						}
@@ -793,8 +796,7 @@ func (v *VScan) scanWithProbes(target Target, probes *[]Probe) (Result, error) {
 					}
 					found = true
 					return result, nil
-				} else
-				if matched && match.IsSoft && !softFound {
+				} else if matched && match.IsSoft && !softFound {
 					softFound = true
 					softMatch = match
 				}
@@ -808,11 +810,11 @@ func (v *VScan) scanWithProbes(target Target, probes *[]Probe) (Result, error) {
 					if matched && !match.IsSoft {
 						extras := match.ParseVersionInfo(response)
 						result.Service.Name = match.Service
-						if(match.Service == "http") {
-							if(target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 7443 || target.Port == 8443  || target.Port == 9443 || target.Port == 4430){
+						if match.Service == "http" {
+							if target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 7443 || target.Port == 8443 || target.Port == 9443 || target.Port == 4430 {
 								url := "https://" + target.GetAddress()
-								status,tag := getHttpBanner(url)
-								result.Service.Extras.ServiceURL =tag.ServiceURL
+								status, tag := getHttpBanner(url)
+								result.Service.Extras.ServiceURL = tag.ServiceURL
 								if status {
 									result.Banner = tag.ServerBanner
 									result.Service.Extras.Sign = tag.ServerSign
@@ -821,11 +823,11 @@ func (v *VScan) scanWithProbes(target Target, probes *[]Probe) (Result, error) {
 									result.Banner = trimBanner(response)
 									result.Service.Extras = extras
 								}
-							}else{
+							} else {
 								url := "http://" + target.GetAddress()
-								status,tag := getHttpBanner(url)
-								result.Service.Extras.ServiceURL =tag.ServiceURL
-								if status{
+								status, tag := getHttpBanner(url)
+								result.Service.Extras.ServiceURL = tag.ServiceURL
+								if status {
 									result.Banner = tag.ServerBanner
 									result.Service.Extras.Sign = tag.ServerSign
 									result.Service.Extras.StatusCode = tag.StatusCode
@@ -834,14 +836,13 @@ func (v *VScan) scanWithProbes(target Target, probes *[]Probe) (Result, error) {
 									result.Service.Extras = extras
 								}
 							}
-						}else {
+						} else {
 							result.Banner = trimBanner(response)
 							result.Service.Extras = extras
 						}
 						found = true
 						return result, nil
-					} else
-					if matched && match.IsSoft && !softFound {
+					} else if matched && match.IsSoft && !softFound {
 						softFound = true
 						softMatch = match
 					}
@@ -852,29 +853,29 @@ func (v *VScan) scanWithProbes(target Target, probes *[]Probe) (Result, error) {
 
 					result.Banner = trimBanner(response)
 
-					if(strings.Contains(result.Banner, "HTTP/")) {
+					if strings.Contains(result.Banner, "HTTP/") {
 						result.Service.Name = "http"
-					} else if (strings.Contains(result.Banner, "html")) {
+					} else if strings.Contains(result.Banner, "html") {
 						result.Service.Name = "http"
 					} else {
 						result.Service.Name = "unknown"
 					}
 
-					if(result.Service.Name == "http") {
-						if(target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 7443 || target.Port == 8443  || target.Port == 9443 || target.Port == 4430){
+					if result.Service.Name == "http" {
+						if target.Port == 443 || target.Port == 2443 || target.Port == 3443 || target.Port == 4443 || target.Port == 5443 || target.Port == 6443 || target.Port == 7443 || target.Port == 8443 || target.Port == 9443 || target.Port == 4430 {
 							url := "https://" + target.GetAddress()
-							status,tag := getHttpBanner(url)
-							result.Service.Extras.ServiceURL =tag.ServiceURL
-							if status{
+							status, tag := getHttpBanner(url)
+							result.Service.Extras.ServiceURL = tag.ServiceURL
+							if status {
 								result.Banner = tag.ServerBanner
 								result.Service.Extras.Sign = tag.ServerSign
 								result.Service.Extras.StatusCode = tag.StatusCode
 							}
-						}else{
+						} else {
 							url := "http://" + target.GetAddress()
-							status,tag := getHttpBanner(url)
-							result.Service.Extras.ServiceURL =tag.ServiceURL
-							if status{
+							status, tag := getHttpBanner(url)
+							result.Service.Extras.ServiceURL = tag.ServiceURL
+							if status {
 								result.Banner = tag.ServerBanner
 								result.Service.Extras.Sign = tag.ServerSign
 								result.Service.Extras.StatusCode = tag.StatusCode
@@ -911,14 +912,14 @@ func grabResponse(addr string, data []byte) ([]byte, error) {
 	defer conn.Close()
 
 	if len(data) > 0 {
-		conn.SetWriteDeadline(time.Now().Add(time.Second*2))
+		conn.SetWriteDeadline(time.Now().Add(time.Second * 2))
 		_, errWrite := conn.Write(data)
 		if errWrite != nil {
 			return response, errWrite
 		}
 	}
 
-	conn.SetReadDeadline(time.Now().Add(time.Second*2))
+	conn.SetReadDeadline(time.Now().Add(time.Second * 2))
 	for true {
 		buff := make([]byte, 1024)
 		n, errRead := conn.Read(buff)
@@ -948,36 +949,36 @@ func (v *VScan) Tagetsacn(addr []string, thread int) []string {
 			fmt.Println(s)
 		}
 	}()
-	for _,targetIP :=range addr{
+	for _, targetIP := range addr {
 		wg.Add(1)
 		limiter <- struct{}{}
 		go func(targetIP string) {
 			defer wg.Done()
 			result, err := v.Explore(targetIP)
 			mutex.Lock()
-			if  err == nil{
-				if (result.Service.Name == "http") {
+			if err == nil {
+				if result.Service.Name == "http" {
 					banner := result.Service.Banner
-					if (len(banner) > 30) {
+					if len(banner) > 30 {
 						banner = banner[:30] + "..."
 					}
 					info = banner
 					if result.Service.Extras.Version != "" {
-						info =  result.Service.Extras.Version + " - " + info
+						info = result.Service.Extras.Version + " - " + info
 					}
 					if result.Service.Extras.VendorProduct != "" {
-						info =  result.Service.Extras.VendorProduct + " - " + info
+						info = result.Service.Extras.VendorProduct + " - " + info
 					}
 					if result.Service.Extras.Sign != "" {
-						info =  result.Service.Extras.Sign + " - " + info
+						info = result.Service.Extras.Sign + " - " + info
 					}
-				} else if (result.Service.Name == "ssl-ms-rdp"){
+				} else if result.Service.Name == "ssl-ms-rdp" {
 					info = result.Service.Name
-				} else if (result.Service.Name == "microsoft-ds" && (strings.Contains(result.Service.Banner, "hostname") || strings.Contains(result.Service.Banner, "domain"))){
+				} else if result.Service.Name == "microsoft-ds" && (strings.Contains(result.Service.Banner, "hostname") || strings.Contains(result.Service.Banner, "domain")) {
 					info = result.Service.Extras.VendorProduct + " - " + result.Service.Name + " - " + result.Service.Banner
 				} else {
 					info = result.Service.Name
-					if result.Service.Banner != "" &&  result.Service.Banner != "." && result.Service.Banner != ".@."{
+					if result.Service.Banner != "" && result.Service.Banner != "." && result.Service.Banner != ".@." {
 						info = result.Service.Name + " - " + result.Service.Banner
 					}
 					if result.Service.Extras != (Extras{}) {
@@ -985,18 +986,20 @@ func (v *VScan) Tagetsacn(addr []string, thread int) []string {
 							info = info + " - " + result.Service.Extras.Version
 						}
 						if result.Service.Extras.VendorProduct != "" {
-							info =  result.Service.Extras.VendorProduct + " - " + info
+							info = result.Service.Extras.VendorProduct + " - " + info
 						}
 						if result.Service.Extras.Sign != "" {
-							info =  result.Service.Extras.Sign + " - " + info
+							info = result.Service.Extras.Sign + " - " + info
 						}
 					}
 				}
-				if (info == ""){
+				if info == "" {
 					info = "unknown"
 				}
-				fmt.Printf("%s:%d (%s)\n",result.IP, result.Port, info)
-				TagetBanner := targetIP + " (" + info + ")"
+				green.Printf("[+] %s:%d (%s)\n", result.IP, result.Port, info)
+				TagetBanner := " (" + info + ")"
+				//TagetBanner := result.IP + string(result.Port) + " (" + info + ")"
+
 				TagetBanners = append(TagetBanners, TagetBanner)
 				mutex.Unlock()
 			}
@@ -1021,9 +1024,9 @@ func GetProbes(aliveHosts []string) []string {
 	v.Init()
 	//线程控制
 	thread := 20
-	if len(aliveHosts)>50 {
-		thread = len(aliveHosts)/2
+	if len(aliveHosts) > 50 {
+		thread = len(aliveHosts) / 2
 	}
-	TagetBanners := v.Tagetsacn(aliveHosts,thread)
+	TagetBanners := v.Tagetsacn(aliveHosts, thread)
 	return TagetBanners
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"F-Scrack-Go/serverScan/icmpcheck"
 	"F-Scrack-Go/serverScan/portscan"
+	"F-Scrack-Go/serverScan/vscan"
 	"flag"
 	"github.com/fatih/color"
 	"os"
@@ -12,12 +13,18 @@ var hostList []string
 var aliveList []string
 var aliveHosts []string
 var aliveAddr []string
+var TargetBanners []string
 var isIP bool
 
 var green = color.New(color.FgGreen)
 var red = color.New(color.FgRed).Add(color.Bold)
 
 func main() {
+
+	if len(os.Args) == 1 {
+		flag.Usage()
+	}
+
 	// 避免同时使用 -hf 和 -h
 	if hostinfile != "" && hosts != "" {
 		color.Red("Can not use -hf and -h at the same time.")
@@ -26,32 +33,38 @@ func main() {
 	}
 
 	// -hf
-
-	if hostinfile != "" {
-		hostList = StandardIPViaFile(hostinfile, "file")
-		//hostList = StandardIPViaFile("/Users/annevi/Documents/众测/ip.new", "file")
-		//fmt.Println(hostList)
+	if hostinfile == "" {
+		//hostList = StandardIPViaFile(hostinfile, "file")
+		hostList = StandardIPViaFile("test.txt", "file")
 		aliveList = icmpcheck.ICMPRun(hostList)
 		for _, host := range aliveList {
 			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
 		}
+
 		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
+		//fmt.Println(aliveAddr)
+		if service == "" {
+			if len(aliveAddr) > 0 {
+				TargetBanners = vscan.GetProbes(aliveAddr)
+			}
+		}
 	}
 
 	// -h
 	if hosts != "" {
 		// 标准化ip
 		hostList = StandardIPViaFile(hosts, "single")
-		if model == "" {
-			// icmp 存活探测
-			aliveList = icmpcheck.ICMPRun(hostList)
-			for _, host := range aliveList {
-				green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
-			}
-			aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
+		// icmp 存活探测
+		aliveList = icmpcheck.ICMPRun(hostList)
+		for _, host := range aliveList {
+			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
+		}
+		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
 
-		} else if model == "tcp" {
-			aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, "80", "tcp", 2)
+		if service != "" {
+			if len(aliveAddr) > 0 {
+				TargetBanners = vscan.GetProbes(aliveAddr)
+			}
 		}
 	}
 
