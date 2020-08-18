@@ -2,6 +2,7 @@ package portscan
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"net"
 	"sort"
 	"strconv"
@@ -9,6 +10,9 @@ import (
 	"sync"
 	"time"
 )
+
+var green = color.New(color.FgGreen)
+var red = color.New(color.FgRed).Add(color.Bold)
 
 func parsePort(ports string) []int {
 	var scanPorts []int
@@ -44,9 +48,9 @@ func ProbeHosts(host string, ports <-chan int, respondingHosts chan<- string, do
 			defer con.Close()
 			address := host + ":" + strconv.Itoa(port)
 			if model == "tcp" {
-				fmt.Printf("(TCP) Target %s is open\n", address)
+				green.Printf("[+] [TCP] Target %s is open\n", address)
 			} else {
-				fmt.Println(address)
+				green.Println(address)
 			}
 			respondingHosts <- address
 		}
