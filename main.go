@@ -5,6 +5,7 @@ import (
 	"F-Scrack-Go/serverScan/portscan"
 	"F-Scrack-Go/serverScan/vscan"
 	"flag"
+	"fmt"
 	"github.com/fatih/color"
 	"os"
 )
@@ -18,6 +19,7 @@ var isIP bool
 
 var green = color.New(color.FgGreen)
 var red = color.New(color.FgRed).Add(color.Bold)
+var blue = color.New(color.FgBlue).Add(color.Bold)
 
 func main() {
 
@@ -33,17 +35,18 @@ func main() {
 	}
 
 	// -hf
-	if hostinfile == "" {
-		//hostList = StandardIPViaFile(hostinfile, "file")
-		hostList = StandardIPViaFile("test.txt", "file")
+	if hostinfile != "" {
+		hostList = StandardIPViaFile(hostinfile, "file")
+		//hostList = StandardIPViaFile("test.txt", "file")
 		aliveList = icmpcheck.ICMPRun(hostList)
 		for _, host := range aliveList {
 			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
 		}
-
+		blue.Println("\nProcess: \n")
 		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
+		fmt.Println("\n")
 		//fmt.Println(aliveAddr)
-		if service == "" {
+		if service != "" {
 			if len(aliveAddr) > 0 {
 				TargetBanners = vscan.GetProbes(aliveAddr)
 			}
@@ -59,7 +62,9 @@ func main() {
 		for _, host := range aliveList {
 			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
 		}
+		blue.Println("\nProcess: \n")
 		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
+		fmt.Println("\n")
 
 		if service != "" {
 			if len(aliveAddr) > 0 {
