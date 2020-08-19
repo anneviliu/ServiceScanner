@@ -40,4 +40,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
           name: drone_test
-          path: /home/runner/work/drone_test/drone_test
+          path: /home/runner/work/serviceScanner/serviceScanner
