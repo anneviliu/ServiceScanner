@@ -1,7 +1,7 @@
 package icmpcheck
 
 import (
-	"F-Scrack-Go/serverScan/getsysinfo"
+	"serviceScan/serverScan/getsysinfo"
 	"bytes"
 	"encoding/binary"
 	"fmt"

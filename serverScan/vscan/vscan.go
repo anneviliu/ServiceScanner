@@ -1,7 +1,7 @@
 package vscan
 
 import (
-	"F-Scrack-Go/serverScan/vscan/proberbyte"
+	"serviceScan/serverScan/vscan/proberbyte"
 	"bytes"
 	"compress/gzip"
 	"crypto/tls"

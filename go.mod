@@ -1,10 +1,9 @@
-module F-Scrack-Go
+module serviceScan
 
 go 1.14
 
 require (
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
-	github.com/briandowns/spinner v1.11.1
 	github.com/fatih/color v1.9.0
 	github.com/malfunkt/iprange v0.9.0
 	github.com/pkg/errors v0.9.1 // indirect

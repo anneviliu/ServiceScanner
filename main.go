@@ -1,9 +1,9 @@
 package main
 
 import (
-	"F-Scrack-Go/serverScan/icmpcheck"
-	"F-Scrack-Go/serverScan/portscan"
-	"F-Scrack-Go/serverScan/vscan"
+	"serviceScan/serverScan/icmpcheck"
+	"serviceScan/serverScan/portscan"
+	"serviceScan/serverScan/vscan"
 	"flag"
 	"fmt"
 	"github.com/fatih/color"
@@ -47,11 +47,10 @@ func main() {
 		for _, host := range aliveList {
 			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
 		}
-		blue.Println("\nProcess: \n")
+		blue.Println("\nProcess: ")
 		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
-		fmt.Println("\n")
+		fmt.Println(" ")
 
-		//fmt.Println(aliveAddr)
 		if service != "" {
 			if len(aliveAddr) > 0 {
 				TargetBanners = vscan.GetProbes(aliveAddr)
@@ -72,9 +71,9 @@ func main() {
 		for _, host := range aliveList {
 			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
 		}
-		blue.Println("\nProcess: \n")
+		blue.Println("\nProcess: ")
 		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
-		fmt.Println("\n")
+		fmt.Println(" ")
 
 		if service != "" {
 			if len(aliveAddr) > 0 {
@@ -97,16 +96,16 @@ func main() {
 			green.Printf("[+] Output the scanning information in %s\n", outFile)
 			defer f.Close()
 		} else if PathCheck(outFile) == -1 {
-			red.Println("[-] OutFile path error \n")
+			red.Println("[-] OutFile path error ")
 			os.Exit(1)
 		} else if PathCheck(outFile) == -2 {
 			red.Printf("[-] OutFile File %s already exits\n", outFile)
 			os.Exit(1)
 		} else if PathCheck(outFile) == -3 {
-			red.Println("[-] OutFile File create failed!\n")
+			red.Println("[-] OutFile File create failed!")
 			os.Exit(1)
 		} else {
-			red.Println("[-] Unknown error\n")
+			red.Println("[-] Unknown error")
 			os.Exit(1)
 		}
 	}
