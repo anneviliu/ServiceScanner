@@ -17,7 +17,8 @@ jobs:
     - name: Test
       run: go test ./...
     - name: upload artifects
-      uses: actions/upload-artifact@v1
-      with:
-        name: seviceScanner
-        path: outputs/
+#       uses: actions/upload-artifact@v1
+      run: ls ./
+#       with:
+#         name: seviceScanner
+#         path: outputs/
