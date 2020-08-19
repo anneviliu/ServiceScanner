@@ -27,5 +27,5 @@ jobs:
       uses: actions/upload-artifact@v1
 #       run: pwd
       with:
-        name: seviceScanner
+        name: serviceScanner
         path: outputs/
