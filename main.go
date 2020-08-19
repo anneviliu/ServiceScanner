@@ -4,6 +4,7 @@ import (
 	"serviceScan/serverScan/icmpcheck"
 	"serviceScan/serverScan/portscan"
 	"serviceScan/serverScan/vscan"
+
 	"flag"
 	"fmt"
 	"github.com/fatih/color"
@@ -20,6 +21,7 @@ var isIP bool
 var green = color.New(color.FgGreen)
 var red = color.New(color.FgRed).Add(color.Bold)
 var blue = color.New(color.FgBlue).Add(color.Bold)
+var cyan = color.New(color.FgCyan).Add(color.Bold)
 
 func main() {
 
@@ -43,15 +45,23 @@ func main() {
 	if hostinfile != "" {
 		hostList = StandardIPViaFile(hostinfile, "file")
 		//hostList = StandardIPViaFile("test.txt", "file")
-		aliveList = icmpcheck.ICMPRun(hostList)
-		for _, host := range aliveList {
-			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
+		if !skipICMP {
+			aliveList = icmpcheck.ICMPRun(hostList)
+			for _, host := range aliveList {
+				green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
+			}
+			blue.Println("\nProcess: ")
+			aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
+			fmt.Printf("\n\n")
+		} else {
+			cyan.Println("[!] Skip ICMP Detect")
+			blue.Println("\nProcess: ")
+			aliveHosts, aliveAddr = portscan.TCPportScan(hostList, ports, "tcp", timeout)
+			fmt.Printf("\n\n")
 		}
-		blue.Println("\nProcess: ")
-		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
-		fmt.Println(" ")
 
-		if service != "" {
+
+		if service {
 			if len(aliveAddr) > 0 {
 				TargetBanners = vscan.GetProbes(aliveAddr)
 			}
@@ -67,15 +77,23 @@ func main() {
 		// 标准化ip
 		hostList = StandardIPViaFile(hosts, "single")
 		// icmp 存活探测
-		aliveList = icmpcheck.ICMPRun(hostList)
-		for _, host := range aliveList {
-			green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
-		}
-		blue.Println("\nProcess: ")
-		aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
-		fmt.Println(" ")
+		if !skipICMP {
+			aliveList = icmpcheck.ICMPRun(hostList)
+			for _, host := range aliveList {
+				green.Printf("[+] [ICMP] Target '%s' is alive\n", host)
+			}
+			blue.Println("\nProcess: ")
+			aliveHosts, aliveAddr = portscan.TCPportScan(aliveList, ports, "tcp", timeout)
+			fmt.Println(" ")
+		} else {
+			cyan.Println("[!] Skip ICMP Detect")
 
-		if service != "" {
+			blue.Println("\nProcess: ")
+			aliveHosts, aliveAddr = portscan.TCPportScan(hostList, ports, "tcp", timeout)
+			fmt.Println(" ")
+		}
+
+		if service {
 			if len(aliveAddr) > 0 {
 				TargetBanners = vscan.GetProbes(aliveAddr)
 			}
