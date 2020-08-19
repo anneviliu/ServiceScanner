@@ -20,5 +20,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: seviceScanner
-        run: mkdir ./outputs/ 
-        path: ./outputs/
+        path: outputs/
