@@ -64,7 +64,6 @@ func main() {
 
 	// -h
 	if hosts != "" {
-		// 标准化ip
 		hostList = StandardIPViaFile(hosts, "single")
 		// icmp 存活探测
 		aliveList = icmpcheck.ICMPRun(hostList)
