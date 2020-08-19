@@ -17,7 +17,7 @@ jobs:
     - name: Test
       run: go test ./...
     - name: upload artifects
-      uses: actions/upload-artifact@main
+      uses: actions/upload-artifact@v1
       with:
         name: seviceScanner
         path: build/app/outputs
