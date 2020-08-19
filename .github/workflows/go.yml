@@ -20,4 +20,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: seviceScanner
-        path: build/app/outputs
+        path: /home/runner/work/seviceScanner
