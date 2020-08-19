@@ -18,7 +18,7 @@ jobs:
       run: go test ./...
     - name: upload artifects
 #       uses: actions/upload-artifact@v1
-      run: ls ./
+      run: pwd
 #       with:
 #         name: seviceScanner
 #         path: outputs/
